@@ -1,0 +1,169 @@
+package com.uincia.droolsaccumulate.model
+import com.uincia.droolsaccumulate.model.Cibil;
+import com.uincia.droolsaccumulate.model.Account;
+import com.uincia.droolsaccumulate.model.AccountDtls
+
+dialect "mvel"
+
+rule "Civil Dev-1"
+//when
+//    $c: Cibil($accounts : listOfAccount != null)
+//    $accou : Account( $accountDtls: listOfAccountDtls != null,(ownership != "02" && ownership != "03"), (loanType != "07" && loanType != "53" && loanType != "57"), $balance : balance ) from $accounts.getInnerDataList()
+//   	//$accou : Account( $accountDtls: listOfAccountDtls != null,(ownership != "02" && ownership != "03"), (loanType != "07" && loanType != "53" && loanType != "57"), $balance : balance ) from $accounts
+///*	totalBalance : Number() from accumulate(
+//           Account($accountDtls: listOfAccountDtls != null, $balance: balance ) from $accounts,
+//            init(int count = 0;),
+//            action(count += $balance;),
+//            reverse(count -= $balance;),
+//            result(count)
+//        ) */
+//    totalOverDue : Number() from accumulate(
+//           AccountDtls($q: od ) from $accountDtls,
+//            init(int count = 0;),
+//            //action(count += $q;),
+//            action(count += $q;),
+//            reverse(count -= $q;),
+//            result(count)
+//        )
+//    then
+//          $c.setIndi_Joint_No_Gold_agri_Loan_Balance($accou.getBalance());   
+//          $accou.setIndi_Joint_No_Gold_agri_Loan_OD(totalOverDue);
+//end
+//==========================================================================
+rule "Accumulate InnerData based on condition in OuterData"
+when
+    $outerData : OuterData($condition : condition)
+    $innerData : InnerData(value > 10) from $outerData.getInnerDataList()
+then
+    accumulate(
+        $innerDataAccumulated : InnerData() from $innerData,
+        collectList($innerDataAccumulated) from $outerData.getAccumulatedInnerDataList()
+    );
+end
+
+//==========================================================================
+when
+    $c: Cibil($accounts : listOfAccount != null)
+    $accou : Account( $accountDtls: listOfAccountDtls != null,(ownership != "02" && ownership != "03"), (loanType != "07" && loanType != "53" && loanType != "57"), $balance : balance ) from $accounts.getInnerDataList()
+   
+   
+   
+   
+   
+   	//$accou : Account( $accountDtls: listOfAccountDtls != null,(ownership != "02" && ownership != "03"), (loanType != "07" && loanType != "53" && loanType != "57"), $balance : balance ) from $accounts
+/*	totalBalance : Number() from accumulate(
+           Account($accountDtls: listOfAccountDtls != null, $balance: balance ) from $accounts,
+            init(int count = 0;),
+            action(count += $balance;),
+            reverse(count -= $balance;),
+            result(count)
+        ) */
+    totalOverDue : Number() from accumulate(
+           AccountDtls($q: od ) from $accountDtls,
+            init(int count = 0;),
+            //action(count += $q;),
+            action(count += $q;),
+            reverse(count -= $q;),
+            result(count)x
+        )
+    then
+          $c.setIndi_Joint_No_Gold_agri_Loan_Balance($accou.getBalance());   
+          $accou.setIndi_Joint_No_Gold_agri_Loan_OD(totalOverDue);
+end              
+              
+/*                
+rule "Civil Dev-2"
+when
+    $c: Cibil($accounts : listOfAccount != null)
+        $accou : Account( $accountDtls: listOfAccountDtls != null ) from $accounts
+	totalBalance : Number() from accumulate(
+        Account((ownership == "01" || ownership == "04"), (loanType == "07" || loanType == "53" || loanType == "57"), $balance: balance ) from $accounts, 
+            init(int count = 0;),
+            action(count += $balance;),
+            reverse(count -= $balance;),
+            result(count)
+        )
+    totalOverDue : Number() from accumulate(
+       AccountDtls($q: od ) from $accountDtls,
+            init(int count = 0;),
+            action(count += $q;),
+            reverse(count -= $q;),
+            result(count)
+        )
+    then
+          $c.setIndi_Joint_Gold_agri_Loan_Balance(totalBalance);    
+          $accou.setIndi_Joint_Gold_agri_Loan_OD(totalOverDue);          
+end
+
+rule "Civil Dev-3"
+when
+    $c: Cibil($accounts : listOfAccount != null)
+	$accou: Account( $accountDtls: listOfAccountDtls != null ) from $accounts 
+	totalBalance : Number() from accumulate(
+        Account((ownership == "03"), $balance: balance ) from $accounts,
+            init(int count = 0;),
+            action(count += $balance;),
+            reverse(count -= $balance;),
+            result(count)
+        )
+       
+    totalOverDue : Number() from accumulate(
+           AccountDtls($q: od ) from $accountDtls,
+            init(int count = 0;),
+            action(count += $q;),
+            reverse(count -= $q;),
+            result(count)
+        )
+    then
+          $c.setAll_Guarantor_Balance(totalBalance);    
+          $accou.setAll_Guarantor_OD(totalOverDue);
+end
+
+rule "Civil Dev-4"
+when
+    $c: Cibil($accounts : listOfAccount != null)
+	$accou: Account( $accountDtls: listOfAccountDtls != null ) from $accounts
+	totalBalance : Number() from accumulate(
+        Account((ownership == "1" || ownership == "4"), $balance: balance ) from $accounts,
+            init(int count = 0;),
+            action(count += $balance;),
+            reverse(count -= $balance;),
+            result(count)
+        )
+
+    totalOverDue : Number() from accumulate(
+        AccountDtls($q: od ) from $accountDtls,
+            init(int count = 0;),
+            action(count += $q;),
+            reverse(count -= $q;),
+            result(count)
+        )
+    then
+          $c.setAll_Indi_Joint_Balance(totalBalance);    
+          $accou.setAll_Indi_Joint_OD(totalOverDue);         
+end
+
+rule "Civil Dev-6"
+when
+    $c: Cibil($accounts : listOfAccount != null)
+	$accou: Account( $accountDtls: listOfAccountDtls != null ) from $accounts
+	totalBalance : Number() from accumulate(
+        Account((ownership == "01" || ownership == "04"), (loanType == "07" || loanType == "53" || loanType == "57"), $balance: balance ) from $accounts,
+            init(int count = 0;),
+            action(count += $balance;),
+            reverse(count -= $balance;),
+            result(count)
+        )
+        
+    totalOverDue : Number() from accumulate(
+           AccountDtls($q: od ) from $accountDtls,
+            init(int count = 0;),
+            action(count += $q;),
+            reverse(count -= $q;),
+            result(count)
+        )
+    then
+          $c.setAll_All_Balance(totalBalance);
+          $accou.setAll_All_OD(totalOverDue);
+end
+*/
